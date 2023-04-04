@@ -1,0 +1,29 @@
+{
+  "name": "backmusics",
+  "version": "1.0.0",
+  "description": "Back de musícas",
+  "main": "index.js",
+  "repository": "https://github.com/alvarobraz/backmusics.git",
+  "author": "alvarobraz <alvarobraz83@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^8.0.0",
+    "express": "^4.17.1",
+    "helmet": "^3.22.0",
+    "moment": "^2.28.0",
+    "mongoose": "^5.6.4"
+  },
+  "devDependencies": {
+    "git-commit-msg-linter": "^3.0.3",
+    "jest": "^26.6.3",
+    "nodemon": "^1.19.2",
+    "supertest": "^6.1.3"
+  }
+}
