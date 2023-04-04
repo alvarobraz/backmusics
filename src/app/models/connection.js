@@ -10,8 +10,6 @@ mongoose.connect(process.env.DB_CONNECTION_STRING, {
   useCreateIndex: true
 });
 
-// console.log(process.env.DB_CONNECTION_STRING)
-
 const conn = mongoose.connection;
 
 module.exports = conn;
