@@ -19,6 +19,8 @@ const MusicSchema = new mongoose.Schema({
     status: { type: String, enum: ['active', 'inactive'], required: true, default: "active" },
   },
 
+  favoriteCount: { type: Number, required: false, default: 0 },
+
   status: { type: String, enum: ['active', 'inactive'], required: true, default: "active" },
 
 }, { timestamps: {} });
