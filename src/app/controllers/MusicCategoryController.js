@@ -1,4 +1,5 @@
 const MusicCategory = require('../models/MusicCategory');
+const Music = require('../models/Music');
 const MusicCategoryService =  require('../services/MusicCategoryService')
 module.exports = {
 
@@ -95,6 +96,54 @@ module.exports = {
       return res.status(400).json({ error });
     }
      
+  },
+
+  async show(req, res) {
+
+    try {
+
+      const getOneCatecoryMusic = await MusicCategory.findOne({ _id: req.params.id })
+      return res.json(getOneCatecoryMusic)
+
+    } catch (error) {
+      return res.status(400).json({ error });
+    }
+
+  },
+
+  async update(req, res) {
+
+    try {
+
+      const updateMusic = await MusicCategory.findOneAndUpdate({ _id: req.params.id }, req.body, { new: true})
+      return res.json(updateMusic)
+
+    } catch (error) {
+      return res.status(400).json({ error });
+    }
+
+  },
+
+  async destroy(req, res) {
+
+    try {
+
+      const searchMusicWithCategory = await Music.find({ "category._id": { $eq: req.params.id } })
+
+      if(searchMusicWithCategory.length !== 0) {
+        for (let sc = 0; sc < searchMusicWithCategory.length; sc++) {
+          _idMusic = searchMusicWithCategory[sc]._id;
+          await Music.findOneAndUpdate({ _id: _idMusic },{category: {}})
+        }
+      }
+
+      const deleteCategoryMusic = await MusicCategory.findOneAndUpdate({ _id: req.params.id }, { status: "inactive" })
+      return res.status(204).send({ message: `A Categoria ${deleteCategoryMusic.name} foi desativada!` });
+
+    } catch (error) {
+      return res.status(400).json({ error });
+    }
+
   }
 
 }

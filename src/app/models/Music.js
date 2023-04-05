@@ -7,6 +7,8 @@ const MusicSchema = new mongoose.Schema({
 
   author: { type: String, required: true },
 
+  descrition: { type: String, required: true },
+
   url: { type: String, required: false },
 
   releaseDateOf: { type: Date, required: true },
@@ -14,9 +16,8 @@ const MusicSchema = new mongoose.Schema({
   keyWords: [String],
 
   category: { 
-    _id: { type: mongoose.Schema.Types.ObjectId, ref: "musicCategory", required: true },
-    name: { type: String, required: true },
-    status: { type: String, enum: ['active', 'inactive'], required: true, default: "active" },
+    _id: { type: mongoose.Schema.Types.ObjectId, ref: "musicCategory", required: false },
+    name: { type: String, required: false }
   },
 
   favoriteCount: { type: Number, required: false, default: 0 },
@@ -26,4 +27,4 @@ const MusicSchema = new mongoose.Schema({
 }, { timestamps: {} });
 
 
-module.exports = mongoose.model('Music', MusicSchema);
+module.exports = mongoose.model('music', MusicSchema);

@@ -8,8 +8,9 @@ module.exports = {
     
     try {
 
-      const requiredFields = ['title', 'author', 'releaseDateOf', 'category'];
+      const requiredFields = ['title', 'author', 'descrition', 'releaseDateOf', 'category'];
       for (const field of requiredFields) {
+        console.log(requiredFields.length)
         if (!req.body[field]) {
           return res.status(400).send({ error: `Missing required field: ${field}` });
         }
@@ -40,8 +41,7 @@ module.exports = {
       }
       req.body.category = {
         _id: searchCategory._id,
-        name: searchCategory.name,
-        status: searchCategory.status
+        name: searchCategory.name
       }
 
       const createMusic = await Music.create(req.body);
@@ -129,6 +129,61 @@ module.exports = {
       return res.status(400).json({ error });
     }
      
+  },
+
+  async show(req, res) {
+
+    try {
+
+      const musicsGetOne = await Music.findOne({ _id: req.params.id })
+      return res.json(musicsGetOne)
+
+    } catch (error) {
+      return res.status(400).json({ error });
+    }
+
+  },
+
+  async update(req, res) {
+
+    try {
+
+      if(req.body.category !== undefined) {
+
+        const searchCategory = await MusicCategory.findOne({_id: req.body.category, status: 'active'})
+        if(searchCategory === null) {
+          return res.status(400).send({
+            error: true,
+            message: 'Category does not exist!'
+          });
+        }
+        req.body.category = {
+          _id: searchCategory._id,
+          name: searchCategory.name
+        }
+
+      }
+
+      const updateMusic = await Music.findOneAndUpdate({ _id: req.params.id }, req.body, { new: true})
+      return res.json(updateMusic)
+
+    } catch (error) {
+      return res.status(400).json({ error });
+    }
+
+  },
+
+  async destroy(req, res) {
+
+    try {
+
+      const deleteMusic = await Music.findOneAndUpdate({ _id: req.params.id }, { status: "inactive" })
+      return res.status(204).send({ message: `A musíca ${deleteMusic.title} foi desativada!` });
+
+    } catch (error) {
+      return res.status(400).json({ error });
+    }
+
   }
 
 }
