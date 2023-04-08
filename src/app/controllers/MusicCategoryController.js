@@ -5,12 +5,22 @@ module.exports = {
 
   async store(req, res) {
 
+    const session = await req.conn.startSession();
     try {
+
+      session.startTransaction();
+      const { user } = req.auth;
+      if (user.role !== "admin") {
+        return res.status(400).send({
+          error: true,
+          message: `Acesso negado, somente administradores podem criar uma categoria!`
+        });
+      }
 
       const requiredFields = ['name'];
       for (const field of requiredFields) {
         if (!req.body[field]) {
-          return res.status(400).send({ error: `Missing required field: ${field}` });
+          return res.status(400).send({ error: `Campo obrigatório ausente!: ${field}` });
         }
       }
 
@@ -19,19 +29,22 @@ module.exports = {
       if(nameExists) {
         return res.status(400).send({
           error: true,
-          message: 'Category already registered!'
+          message: 'Categoria já registrada!'
         });
       }
 
       const createCategory = await MusicCategory
-      .create({ name: req.body.name });
-
+      .create([ req.body ], { session });
+      await session.commitTransaction();
       return res.json(createCategory)
 
     } catch (error) {
-      return res.status(400).json({ error });
+      console.log(error);
+      await session.abortTransaction();
+      res.status(400).json(error);
     }
-     
+    session.endSession();
+
   },
 
   async get(req, res) {
@@ -113,36 +126,67 @@ module.exports = {
 
   async update(req, res) {
 
+    const session = await req.conn.startSession();
     try {
 
-      const updateMusic = await MusicCategory.findOneAndUpdate({ _id: req.params.id }, req.body, { new: true})
-      return res.json(updateMusic)
+      session.startTransaction();
+      const { user } = req.auth;
+
+      if (user.role !== "admin") {
+        return res.status(400).send({
+          error: true,
+          message: `Acesso negado, somente administradores podem atualizar uma categoria!`
+        });
+      }
+
+      await MusicCategory.updateOne({ _id: req.params.id }, req.body, { session })
+      await session.commitTransaction(); 
+      return res.json({ message: "Categoria alterada!" })
+     
 
     } catch (error) {
-      return res.status(400).json({ error });
+      console.log(error);
+      await session.abortTransaction();
+      res.status(400).json(error); 
     }
+    session.endSession();
 
   },
 
   async destroy(req, res) {
 
+    const session = await req.conn.startSession();
     try {
+
+      session.startTransaction();
+      const { user } = req.auth;
+
+      if (user.role !== "admin") {
+        return res.status(400).send({
+          error: true,
+          message: `Acesso negado, somente administradores podem deletar uma categoria!`
+        });
+      }
 
       const searchMusicWithCategory = await Music.find({ "category._id": { $eq: req.params.id } })
 
       if(searchMusicWithCategory.length !== 0) {
         for (let sc = 0; sc < searchMusicWithCategory.length; sc++) {
           _idMusic = searchMusicWithCategory[sc]._id;
-          await Music.findOneAndUpdate({ _id: _idMusic },{category: {}})
+          await Music.updateOne({ _id: _idMusic }, {category: {}}, { session })
         }
       }
 
-      const deleteCategoryMusic = await MusicCategory.findOneAndUpdate({ _id: req.params.id }, { status: "inactive" })
-      return res.status(204).send({ message: `A Categoria ${deleteCategoryMusic.name} foi desativada!` });
+      await MusicCategory.updateOne({ _id: req.params.id }, { status: "inactive" }, { session })
+      await session.commitTransaction();
+      return res.status(204).send({ message: `A Categoria foi desativada!` });
 
     } catch (error) {
-      return res.status(400).json({ error });
+      console.log(error);
+      await session.abortTransaction();
+      res.status(400).json(error);
     }
+    session.endSession();
 
   }
 

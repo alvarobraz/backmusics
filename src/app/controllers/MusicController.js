@@ -5,14 +5,24 @@ const MusicService =  require('../services/MusicService')
 module.exports = {
 
   async store(req, res) {
-    
+
+    const session = await req.conn.startSession();
     try {
+
+      session.startTransaction();
+      const { user } = req.auth;
+      if (user.role !== "admin") {
+        return res.status(400).send({
+          error: true,
+          message: `Acesso negado, somente administradores podem criar uma música!`
+        });
+      }
 
       const requiredFields = ['title', 'author', 'descrition', 'releaseDateOf', 'category'];
       for (const field of requiredFields) {
         console.log(requiredFields.length)
         if (!req.body[field]) {
-          return res.status(400).send({ error: `Missing required field: ${field}` });
+          return res.status(400).send({ error: `Campo obrigatório ausente!: ${field}` });
         }
       }
 
@@ -28,7 +38,7 @@ module.exports = {
       if(titlenameExists) {
         return res.status(400).send({
           error: true,
-          message: 'Title already registered!'
+          message: 'Título já registrado!'
         });
       }
 
@@ -36,7 +46,7 @@ module.exports = {
       if(searchCategory === null) {
         return res.status(400).send({
           error: true,
-          message: 'Category does not exist!'
+          message: 'A categporia não existe!'
         });
       }
       req.body.category = {
@@ -44,12 +54,16 @@ module.exports = {
         name: searchCategory.name
       }
 
-      const createMusic = await Music.create(req.body);
-      return res.status(400).json(createMusic)
+      const createMusic = await Music.create([req.body], { session });
+      await session.commitTransaction();
+      return res.json(createMusic)
 
     } catch (error) {
-      return res.status(400).json({ error });
+      console.log(error);
+      await session.abortTransaction();
+      res.status(400).json(error);
     }
+    session.endSession();
 
   },
 
@@ -61,6 +75,7 @@ module.exports = {
         status,
         sortBy,
         name,
+        releaseDateOf,
         limit,
         page,
       } = req.query;
@@ -96,8 +111,10 @@ module.exports = {
         filter ={
           ...filter, 
           $or: [
-            { title: new RegExp(diacriticSensitiveRegex(name),'i') }, 
-            { keyWords: new RegExp(diacriticSensitiveRegex(name),'i') }
+            { title: new RegExp(diacriticSensitiveRegex(name),'i') },
+            { author: new RegExp(diacriticSensitiveRegex(name),'i') },
+            { keyWords: new RegExp(diacriticSensitiveRegex(name),'i') },
+            { 'category.name': new RegExp(diacriticSensitiveRegex(name),'i') }
           ]
         }
       }
@@ -117,6 +134,13 @@ module.exports = {
           sort = {
             ...sort, keyWords: 1
           }
+        }
+      }
+
+      if(releaseDateOf !== undefined && releaseDateOf !== '') {
+        filter ={
+          ...filter,
+          releaseDateOf: { $gte: releaseDateOf }
         }
       }
 
@@ -146,7 +170,17 @@ module.exports = {
 
   async update(req, res) {
 
+    const session = await req.conn.startSession();
     try {
+
+      session.startTransaction();
+      const { user } = req.auth;
+      if (user.role !== "admin") {
+        return res.status(400).send({
+          error: true,
+          message: `Acesso negado, somente administradores podem editar uma música!`
+        });
+      }
 
       if(req.body.category !== undefined) {
 
@@ -164,25 +198,42 @@ module.exports = {
 
       }
 
-      const updateMusic = await Music.findOneAndUpdate({ _id: req.params.id }, req.body, { new: true})
-      return res.json(updateMusic)
+      await Music.updateOne({ _id: req.params.id }, req.body, { session})
+      await session.commitTransaction();
+      return res.json({ message: "Música alterada!" })
 
     } catch (error) {
-      return res.status(400).json({ error });
+      console.log(error);
+      await session.abortTransaction();
+      res.status(400).json(error);;
     }
+    session.endSession();
 
   },
 
   async destroy(req, res) {
 
+    const session = await req.conn.startSession();
     try {
 
-      const deleteMusic = await Music.findOneAndUpdate({ _id: req.params.id }, { status: "inactive" })
-      return res.status(204).send({ message: `A musíca ${deleteMusic.title} foi desativada!` });
+      session.startTransaction();
+      const { user } = req.auth;
+      if (user.role !== "admin") {
+        return res.status(400).send({
+          error: true,
+          message: `Acesso negado, somente administradores podem deletar uma música!`
+        });
+      }
+      await Music.findOneAndUpdate({ _id: req.params.id }, { status: "inactive" })
+      await session.commitTransaction();
+      return res.status(204).send({ message: `A musíca foi desativada!` });
 
     } catch (error) {
-      return res.status(400).json({ error });
+      console.log(error);
+      await session.abortTransaction();
+      res.status(400).json(error);
     }
+    session.endSession();
 
   }
 

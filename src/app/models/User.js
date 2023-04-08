@@ -11,12 +11,18 @@ const UserSchema = new mongoose.Schema({
 
   role: { type: String, required: true, enum: ['admin', 'user'], default: "user" },
 
-  favoritesMusics: { 
-    _id: { type: mongoose.Schema.Types.ObjectId, ref: "music", required: false },
-    title: { type: String, required: false }
-  },
+  favoritesMusics: [
+    { 
+      _id: { type: mongoose.Schema.Types.ObjectId, ref: "music", required: false },
+      title: { type: String, required: false }
+    }
+  ],
 
-  status: { type: String, enum: ['active', 'inactive'], required: true, default: "active" },
+  token: { type: String, required: true },
+
+  firstAccess: { type: Boolean, required: true, default: true },
+
+  status: { type: String, enum: ['active', 'inactive'], required: true, default: "active" }
 
 }, { timestamps: {} });
 

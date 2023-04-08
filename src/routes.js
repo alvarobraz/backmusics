@@ -9,7 +9,8 @@ const auth = require("./app/middlewares/auth");
 
 // MUSICCATEGORY
 routes.post(
-  "/categorias", 
+  "/categorias",
+  auth, 
   MusicCategoryController.store
 );
 
@@ -25,17 +26,20 @@ routes.get(
 
 routes.put(
   "/categorias/:id",
+  auth,
   MusicCategoryController.update
 );
 
 routes.delete(
   "/categorias/:id",
+  auth,
   MusicCategoryController.destroy
 );
 
 //MUSICS
 routes.post(
-  "/musicas", 
+  "/musicas",
+  auth, 
   MusicController.store
 );
 
@@ -51,11 +55,13 @@ routes.get(
 
 routes.put(
   "/musicas/:id",
+  auth,
   MusicController.update
 );
 
 routes.delete(
   "/musicas/:id",
+  auth,
   MusicController.destroy
 );
 
@@ -65,13 +71,38 @@ routes.post(
   UserController.store
 );
 
+routes.get(
+  "/inscritos",
+  auth, 
+  UserController.get
+);
+
+routes.get(
+  "/inscritos/:id",
+  auth, 
+  UserController.show
+);
+
 routes.put(
   "/inscritos/:id", 
   auth,
   UserController.update
 );
 
-// LOGIN
+routes.delete(
+  "/inscritos/:id",
+  auth,
+  UserController.destroy
+);
+
+
+
+// AUTH
 routes.post("/login", AuthController.login);
+routes.put("/first-access/", auth, AuthController.firstAccess);
+routes.put("/change-password/", auth, AuthController.changePassword);
+
+
+
 
 module.exports = routes;

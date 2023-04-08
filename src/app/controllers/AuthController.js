@@ -15,7 +15,7 @@ module.exports = {
       for (const field of requiredFields) {
         console.log(requiredFields.length)
         if (!req.body[field]) {
-          return res.status(400).send({ error: `Missing required field: ${field}` });
+          return res.status(400).send({ error: `Campo obrigatório ausente!: ${field}` });
         }
       }
       email = req.body.email
@@ -44,7 +44,69 @@ module.exports = {
 
   },
 
-  // async get(req, res) {
+  async firstAccess(req, res) {
+
+    try {
+
+      const { password } = req.body;
+      const { user }     = req.auth;
+      const passwordHash = await bcrypt.hash(password, 10);
+      
+      const firtaccess = await User.findOneAndUpdate({ _id: user._id }, { password: passwordHash, firstAccess: false },{ new: true });
+
+      return res.json(firtaccess)
+
+  } catch (error) {
+
+    console.log(error)
+    return res.status(400).json({ error });
+
+  }
+
+
+  },
+
+  async changePassword(req, res) {
+
+    try {
+
+      const requiredFields = [ 'password', 'newPassword', 'confirnNewPassword'];
+
+      for (const field of requiredFields) {
+        if (!req.body[field]) {
+          return res.status(400).send({ error: `Campo obrigatório ausente: ${field}` });
+        }
+      }
+
+      const { password, newPassword, confirnNewPassword } = req.body;
+      const password_verify = await bcrypt.compare(password, req.auth.user.password);
+
+      if (!password_verify) {
+        return res.status(401).send({
+          error: true,
+          message: `Senha inválida!`
+        }); 
+      }
+
+      if(newPassword !== confirnNewPassword) {
+        return res.status(401).send({
+          error: true,
+          message: `Os campos não são iguais!`
+        });
+      }
+
+      const passwordHash = await bcrypt.hash(newPassword, 10);
+
+      const changePassword = await User.findOneAndUpdate({ _id: req.auth.user._id }, { password: passwordHash },{ new: true });
+      return res.json(changePassword)
+
+
+    } catch (error) {
+      console.log(error)
+      return res.status(400).json({ error });
+    }
+
+  }
 
   //   try {
 
