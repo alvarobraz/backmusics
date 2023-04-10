@@ -9,6 +9,8 @@ const MusicSchema = new mongoose.Schema({
 
   descrition: { type: String, required: true },
 
+  img: { type: String, required: true, default: 'https://i.ytimg.com/vi/j5C-p0od8MI/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLAF3VM7ZXr9iw21rIn3EWKH7bhS8w' },
+
   url: { type: String, required: false },
 
   releaseDateOf: { type: Date, required: true },

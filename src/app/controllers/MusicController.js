@@ -76,6 +76,7 @@ module.exports = {
         sortBy,
         name,
         releaseDateOf,
+        category,
         limit,
         page,
       } = req.query;
@@ -141,6 +142,13 @@ module.exports = {
         filter ={
           ...filter,
           releaseDateOf: { $gte: releaseDateOf }
+        }
+      }
+
+      if(category !== undefined && category !== '') {
+        filter ={
+          ...filter,
+          'category._id': category
         }
       }
 
