@@ -6,8 +6,10 @@ module.exports = {
 
   async store(req, res) {
 
+    console.log(req.body.keyWords.length)
+
     const session = await req.conn.startSession();
-    try {
+    // try {
 
       session.startTransaction();
       const { user } = req.auth;
@@ -26,13 +28,13 @@ module.exports = {
         }
       }
 
-      var keyWords = []
-      if(req.body.keyWords.length !== 0) {
-        req.body.keyWords.map((key, index)=>{
-          keyWords.push(key)
-        })
-      }
-      req.body.keyWords = keyWords;
+      // var keyWords = []
+      // if(req.body.keyWords !== undefined) {
+      //   req.body.keyWords.map((key, index)=>{
+      //     keyWords.push(key)
+      //   })
+      // }
+      // req.body.keyWords = keyWords;
 
       const titlenameExists = await Music.findOne({title: req.body.title});
       if(titlenameExists) {
@@ -58,12 +60,12 @@ module.exports = {
       await session.commitTransaction();
       return res.json(createMusic)
 
-    } catch (error) {
-      console.log(error);
-      await session.abortTransaction();
-      res.status(400).json(error);
-    }
-    session.endSession();
+    // } catch (error) {
+    //   console.log(error);
+    //   await session.abortTransaction();
+    //   res.status(400).json(error);
+    // }
+    // session.endSession();
 
   },
 
