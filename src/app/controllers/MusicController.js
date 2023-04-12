@@ -9,7 +9,7 @@ module.exports = {
     console.log(req.body.keyWords.length)
 
     const session = await req.conn.startSession();
-    // try {
+    try {
 
       session.startTransaction();
       const { user } = req.auth;
@@ -60,12 +60,12 @@ module.exports = {
       await session.commitTransaction();
       return res.json(createMusic)
 
-    // } catch (error) {
-    //   console.log(error);
-    //   await session.abortTransaction();
-    //   res.status(400).json(error);
-    // }
-    // session.endSession();
+    } catch (error) {
+      console.log(error);
+      await session.abortTransaction();
+      res.status(400).json(error);
+    }
+    session.endSession();
 
   },
 
