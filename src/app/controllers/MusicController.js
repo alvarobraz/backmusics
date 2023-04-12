@@ -28,13 +28,13 @@ module.exports = {
         }
       }
 
-      // var keyWords = []
-      // if(req.body.keyWords !== undefined) {
-      //   req.body.keyWords.map((key, index)=>{
-      //     keyWords.push(key)
-      //   })
-      // }
-      // req.body.keyWords = keyWords;
+      var keyWords = []
+      if(req.body.keyWords !== undefined) {
+        req.body.keyWords[0].map((key, index)=>{
+          keyWords.push(key)
+        })
+      }
+      req.body.keyWords = keyWords;
 
       const titlenameExists = await Music.findOne({title: req.body.title});
       if(titlenameExists) {
